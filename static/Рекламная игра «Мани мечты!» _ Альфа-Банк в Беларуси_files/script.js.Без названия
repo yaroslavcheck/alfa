@@ -1,0 +1,37 @@
+let urlParams = new URLSearchParams(window.location.search);
+let newParam;
+urlParams.forEach((value, key) => {
+    if (key == 'channel') {
+        newParam = value.match(/(\w{2,4})/);
+    }
+});
+if (typeof newParam !== 'undefined') {
+    newParam = newParam[1];
+    window.addEventListener("DOMContentLoaded", () => {
+        const newButtom = new ChangeUrl(newParam);
+    });
+}
+
+class ChangeUrl {
+    constructor(newParam) {
+        this.newParam = newParam;
+        this.submitButtons = document.querySelectorAll("a");
+        this.change(this);
+    }
+
+    change() {
+        this.submitButtons.forEach((button, index) => {
+            let href = button.href;
+            let pos = href.indexOf('channel');
+            if (pos !== -1) {
+                let param = href.match(/channel=(\w{2,4})/);
+                if (param !== null) {
+                    if (typeof param[1] !== 'undefined') {
+                        let newHref = href.replace(param[1], this.newParam);
+                        this.submitButtons[index].href = newHref;
+                    }
+                }
+            }
+        });
+    }
+}

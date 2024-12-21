@@ -1,0 +1,310 @@
+let nameSelect = {
+    'currency': "PROP[1308][n0][CURRENCY]",
+    'type': "PROP[1308][n0][TYPE]",
+    'term': "PROP[1308][n0][TERM]",
+    'mount': "PROP[1308][n0][MOUNT]",
+    'percent': "PROP[1308][n0][PERCENT]",
+    'min_sum': "PROP[1308][n0][MIN_SUM]",
+    'max_sum': "PROP[1308][n0][MAX_SUM]",
+    'param_pay': "PROP[1308][n0][PARAM_PAY]",
+    'type_pay': "PROP[1308][n0][TYPE_PAY]",
+
+},
+    options = {
+        'currency': {
+            '': '--//--',
+            '43329': 'BYN',
+            '43332': 'USD',
+            '43331': 'EUR',
+            '43330': 'RUB',
+            '1001518': 'CNY'
+        },
+        'type': {
+            '': '--//--',
+            '752256': 'Отзывный',
+            '752257': 'Безотзывный'
+        },
+        'term': {
+            '': '--//--',
+            '548101': 'Дни',
+            '548099': 'Месяцы'
+        },
+        'param_pay': {
+            '': '--//--',
+            '752263': 'Выплата',
+            '752265': 'Капитализация'
+        },
+        'type_pay': {
+            '': '--//--',
+            '752261': 'Одинарный',
+            '752262': 'Двойной'
+        }
+    };
+let valueTypeDepositeDefault = {
+    'type': '--//--',
+    'term': '--//--',
+    'mount': '',
+    'paramPay': '--//--',
+    'typePay': '--//--'
+}
+
+let padding = { 'padding': '10px 0' },
+    deposit = {
+        'padding': '10px 0',
+        'display': 'flex'
+    };
+
+
+function createSpan(text) {
+    return BX.create('span', {
+        text: text
+    });
+};
+
+function createButton(event, value = '', style = {}) {
+    return BX.create('input', {
+        attrs: {
+            'type': 'button',
+            'value': value
+        },
+        style: style,
+        events: {
+            'click': BX.proxy(event, this)
+        }
+    });
+};
+
+function createInput(name, size, value = '') {
+    return BX.create('input', {
+        attrs: {
+            'name': name,
+            'type': 'text',
+            'size': size,
+            'value': value
+        }
+    });
+};
+
+function createSelect(defaultOptions, name, selected = '--//--') {
+    let options = [];
+    for (var index in defaultOptions) {
+        let option = BX.create('option', {
+            attrs: {
+                'value': index,
+                'selected': (defaultOptions[index] == selected ? 'selected' : '')
+            },
+            text: defaultOptions[index]
+        });
+        options.push(option);
+    }
+    return BX.create('select', {
+        children: options,
+        attrs: {
+            'name': name
+        }
+    });
+}
+
+function getDivCurrency(selectedOption, style = {}, newCurrency = false) {
+    if (newCurrency === false) {
+        style = { 'display': 'none' };
+    }
+    return BX.create('div', {
+        children: [
+            createSelect(options['currency'], nameSelect['currency'], selectedOption),
+            createButton(getDivDeposit, 'Добавить депозит'),
+        ],
+        attrs: {
+            'class': 'currency'
+        },
+        style: style,
+    });
+}
+function changeName() {
+    let names = document.querySelectorAll('[name]');
+    for (let value in names) {
+        if (typeof names[value] === 'object') {
+            let name = names[value].getAttribute('name');
+            let compare = name.match(/PROP\[1308\]\[n(\d+)\]/);
+            if (compare !== null) {
+                let oldname = 'n' + compare[1];
+                let number = Number(compare[1]) + 1;
+                let nameNew = 'n' + number;
+                let newS = name.replace(oldname, nameNew);
+                names[value].setAttribute('name', newS);
+            }
+        }
+    }
+}
+
+function getDiv(nameClass, style, value = {}, rateParent = false) {
+    if (rateParent === true) {
+        style = {
+            'display': 'none'
+        }
+    }
+
+    if (nameClass == 'rate') {
+        return BX.create('div', {
+            children: [
+                createSpan(' Ставка % '),
+                createInput(nameSelect['percent'], '3'),
+                createSpan(' Сумма '),
+                createInput(nameSelect['min_sum'], '10'),
+                createInput(nameSelect['max_sum'], '10')
+            ],
+            attrs: {
+                'class': nameClass,
+            },
+        });
+    }
+    if (nameClass == 'deposit') {
+        return BX.create('div', {
+            children: [
+                getDiv('typeDeposit', style, value),
+                getDiv('rateParent', {})
+            ],
+            attrs: {
+                'class': nameClass,
+            },
+        });
+    }
+    if (nameClass == 'typeDeposit') {
+        return BX.create('div', {
+            children: [
+                createSelect(options['type'], nameSelect['type'], value['type']),
+                createSelect(options['term'], nameSelect['term'], value['term']),
+                createInput(nameSelect['mount'], '3', value['mount']),
+                createSelect(options['type_pay'], nameSelect['type_pay'], value['typePay']),
+                createSelect(options['param_pay'], nameSelect['param_pay'], value['paramPay'])
+            ],
+            style: style,
+            attrs: {
+                'class': nameClass,
+            },
+        });
+    }
+    if (nameClass == 'rateParent') {
+        return BX.create('div', {
+            children: [
+                getDiv('rate', padding),
+                createButton(getDivRate, 'Добавить ставку', style),
+            ],
+            style: style,
+            attrs: {
+                'class': nameClass,
+            },
+        });
+    }
+    if (nameClass == 'deposit') {
+        return BX.create('div', {
+            children: [
+                getDiv('typeDeposit', style, value),
+                getDiv('rateParent', {})
+            ],
+            attrs: {
+                'class': nameClass,
+            },
+        });
+    }
+    if (nameClass == 'domain settingDeposit') {
+        return BX.create('div', {
+            children: [
+                getDiv('rows', style, value)
+            ],
+            attrs: {
+                'class': nameClass,
+            },
+        });
+    }
+    if (nameClass == 'rows') {
+        return BX.create('div', {
+            children: [
+                getDivCurrency('--//--', {}, true),
+                getDiv('deposit', {}, valueTypeDepositeDefault)
+            ],
+            attrs: {
+                'class': nameClass,
+            },
+        });
+    }
+}
+
+function getDivDeposit(name) {
+    let nodeInput, parent, divCurrency, divDeposit, value, showBlock;
+    if (name.pointerType === 'mouse') {
+        nodeInput = name.target;
+    } else {
+        nodeInput = name;
+    }
+
+    showBlock = true;
+    parent = nodeInput.parentNode.parentNode;
+    divCurrency = nodeInput.parentNode;
+    divDeposit = divCurrency.nextSibling;
+    value = divCurrency.firstChild.selectedOptions;
+
+    changeName();
+
+    divCurrency.style.display = 'none';
+
+    parent.insertBefore(getDivCurrency(value['0'].innerText, {}, showBlock), divCurrency);
+    parent.insertBefore(getDiv('deposit', {}), divCurrency);
+
+}
+
+function getDivRate(name) {
+    let nodeInput, divCurrency, divDeposit, valueCurrency, divRow, valueType, selectTerm, valueTerm, valueMount, valueTypePay,
+        valueParamPay, valueTypeDeposite, divNextCurrency;
+    if (name.pointerType === 'mouse') {
+        nodeInput = name.target;
+    } else {
+        nodeInput = name;
+    }
+
+    divDeposit = nodeInput.parentNode.parentNode;
+
+    divCurrency = divDeposit.previousSibling;
+    valueCurrency = divCurrency.firstChild.selectedOptions;
+
+    divRow = divDeposit.parentNode;
+
+    valueType = divDeposit.firstChild.firstChild.selectedOptions;
+    if (name.pointerType === 'mouse') {
+        selectTerm = divDeposit.firstChild.firstChild.nextSibling;
+        valueTerm = selectTerm.selectedOptions;
+        valueMount = selectTerm.nextSibling.value;
+        valueTypePay = selectTerm.nextSibling.nextSibling.selectedOptions;
+        valueParamPay = selectTerm.nextSibling.nextSibling.nextSibling.selectedOptions;
+    } else {
+        selectTerm = divDeposit.firstChild.firstChild.nextSibling.nextSibling;
+        valueTerm = selectTerm.selectedOptions;
+        valueMount = selectTerm.nextSibling.value;
+        valueTypePay = selectTerm.nextSibling.nextSibling.selectedOptions;
+        valueParamPay = selectTerm.nextSibling.nextSibling.nextSibling.nextSibling.selectedOptions;
+    }
+
+    valueTypeDeposite = {
+        'type': valueType['0'].innerText,
+        'term': valueTerm['0'].innerText,
+        'mount': valueMount,
+        'typePay': valueTypePay['0'].innerText,
+        'paramPay': valueParamPay['0'].innerText
+    }
+    divNextCurrency = divDeposit.nextSibling;
+
+    changeName();
+
+    nodeInput.style.display = 'none';
+
+    divRow.insertBefore(getDivCurrency(valueCurrency['0'].innerText), divNextCurrency);
+    divRow.insertBefore(getDiv('deposit', {}, valueTypeDeposite, true), divNextCurrency);
+
+}
+
+function getDivCommonCurrency(name) {
+    let parent = name.parentNode;
+    let divSettingDeposit = name.nextSibling;
+
+    parent.insertBefore(getDiv('domain settingDeposit', {}, valueTypeDepositeDefault), divSettingDeposit);
+}
